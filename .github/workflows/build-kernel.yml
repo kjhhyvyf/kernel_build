@@ -36,21 +36,14 @@ jobs:
           export PATH=$GITHUB_WORKSPACE/clang/bin:${PATH}
           cd kernel-source
           curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s nongki
-          make O=out ARCH=arm64 ${{ env.KERNEL_CONFIG }}
-          O=out \
-                      ARCH=arm64 \
-                      CC="clang" \
-                      CLANG_TRIPLE=aarch64-linux-gnu- \
-                      CROSS_COMPILE="${PWD}/clang/bin/aarch64-linux-gnu-" \
-                      CROSS_COMPILE_ARM32="${PWD}/clang/bin/arm-linux-gnueabi-" \
-		                  LD=ld.lld \
-                      STRIP=llvm-strip \
-                      AS=llvm-as \
-		                  AR=llvm-ar \
-		                  NM=llvm-nm \
-		                  OBJCOPY=llvm-objcopy \
-   		                OBJDUMP=llvm-objdump \
-                      CONFIG_NO_ERROR_ON_MISMATCH=y 2>&1 | tee error.log 
+          args="                  ARCH=arm64 \
+                                  O=../out \
+                                  ${{ env.BUILD_ARGS }} \
+                                  CLANG_TRIPLE=aarch64-linux-gnu- \
+                                  CROSS_COMPILE=$GITHUB_WORKSPACE/aarch64-linux-android-4.9/bin/aarch64-linux-android- \
+                                  CROSS_COMPILE_ARM32=$GITHUB_WORKSPACE/arm-linux-androideabi-4.9/bin/arm-linux-androideabi- "
+	  make ${args} ${{ env.KERNEL_CONFIG }}
+          make -j$(($(getconf _NPROCESSORS_ONLN) * 2)) ${args}
 
       - name: Package kernel
         run: |
